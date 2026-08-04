@@ -1,13 +1,27 @@
 const express = require("express");
-const app = express();
+const http = require("node:http");
+const path = require("path")
+const { Server } = require("socket.io");
 
+const app = express();
+const httpServer = http.createServer(app);
+const io = new Server(httpServer);
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req,res) => {
-	res.send("Server is running");
+io.on("connection", (socket) => {
+	console.log('socket connected:', socket.id);
+
+	socket.on("disconnect", (reason) => {
+		console.log("socket disconected:", socket.id, reason);
+	});
+})
+
+app.use(express.static( path.join(__dirname,"/public")));
+
+app.get("/", (req, res) => {
+  res.send("Server is running");
 });
 
-app.listen(PORT, () => {
-	console.log(`Server listening on port ${PORT}`);
+httpServer.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
-
