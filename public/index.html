@@ -8,12 +8,17 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form>
-      <input type="text" name="message" placeholder="Message"/>
-      <button type="submit">Send</button>
+    <form id="username-form">
+        <input type="text" id="username-input" placeholder="Your name" />
+        <button type="submit">Join</button>
     </form>
-
+    <div id="chat" style="display: none">
+      <ul id="messages"></ul>
+      <form id="chat-form">
+        <input id="message-input" type="text" name="message" placeholder="Message" />
+        <button type="submit">Send</button>
+      </form>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
   </body>
