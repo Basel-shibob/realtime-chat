@@ -70,7 +70,7 @@ function joinUser(e) {
     socket.emit("join", { username: name, room });
     currentUsername = name;
     document.getElementById("username-form").style.display = "none";
-    document.getElementById("chat").style.display = "block";
+    document.getElementById("chat").style.display = "flex";
   }
 }
 

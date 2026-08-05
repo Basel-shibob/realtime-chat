@@ -9,18 +9,29 @@
   </head>
   <body>
     <form id="username-form">
-        <input type="text" id="username-input" placeholder="Your name" />
-        <input type="text" id="room-input" placeholder="Room name">
-        <button type="submit">Join</button>
+      <input type="text" id="username-input" placeholder="Your name" />
+      <input type="text" id="room-input" placeholder="Room name" />
+      <button type="submit">Join</button>
     </form>
+
     <div id="chat" style="display: none">
-      <ul id="messages"></ul>
-      <ul id="online-list"></ul>
-      <div id="typing-indicator"></div>
-      <form id="chat-form">
-        <input id="message-input" type="text" name="message" placeholder="Message" />
-        <button type="submit">Send</button>
-      </form>
+      <div id="sidebar">
+        <h3>Online</h3>
+        <ul id="online-list"></ul>
+      </div>
+      <div id="main">
+        <ul id="messages"></ul>
+        <div id="typing-indicator"></div>
+        <form id="chat-form">
+          <input
+            id="message-input"
+            type="text"
+            name="message"
+            placeholder="Message"
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
