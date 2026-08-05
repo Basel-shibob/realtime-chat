@@ -11,16 +11,21 @@ const PORT = process.env.PORT || 3000;
 io.on("connection", (socket) => {
   console.log("socket connected:", socket.id);
 
-  socket.on("join", (username) => {
+  socket.on("join", ({ username, room }) => {
     if (
       typeof username !== "string" ||
       username.trim().length === 0 ||
-      username.length > 30
+      username.length > 30 ||
+	  typeof room !== "string" ||
+	  room.trim().length === 0 ||
+	  room.length > 30
     ) {
       return;
     }
     socket.username = username.trim();
-    socket.broadcast.emit("user joined", socket.username);
+    socket.room = room.trim();
+	socket.join(socket.room)
+    socket.to(socket.room).emit("user joined", socket.username);
   });
 
   socket.on("chat message", (msg) => {
@@ -33,13 +38,13 @@ io.on("connection", (socket) => {
     ) {
       return;
     }
-    io.emit("chat message", { username: msg.username, text: msg.text.trim() });
+    io.to(socket.room).emit("chat message", { username: msg.username, text: msg.text.trim() });
   });
 
   socket.on("disconnect", (reason) => {
     console.log("socket disconected:", socket.id, reason);
-	if(socket.username){
-		socket.broadcast.emit("user left", socket.username);
+	if(socket.username && socket.room){
+		socket.to(socket.room).emit("user left", socket.username);
 	}
   });
 });

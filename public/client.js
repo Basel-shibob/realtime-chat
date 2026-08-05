@@ -13,28 +13,29 @@ socket.on("chat message", (msg) => {
   messagesList.appendChild(li);
 });
 
-socket.on("user joined", (name) =>{
-    const li = document.createElement("li")
-    li.textContent = `${name} joined the chat`;
-    messagesList.appendChild(li);
+socket.on("user joined", (name) => {
+  const li = document.createElement("li");
+  li.textContent = `${name} joined the chat`;
+  messagesList.appendChild(li);
 });
 
-socket.on("user left", (name) =>{
-    const li = document.createElement("li")
-    li.textContent = `${name} left the chat`;
-    messagesList.appendChild(li);
+socket.on("user left", (name) => {
+  const li = document.createElement("li");
+  li.textContent = `${name} left the chat`;
+  messagesList.appendChild(li);
 });
 
 function joinUser(e) {
   e.preventDefault();
   const username = document.getElementById("username-input");
+  const room = document.getElementById("room-input").value.trim();
   const name = username.value.trim();
-  if (name) {
-    socket.emit("join", name);
+  if (name && room) {
+    socket.emit("join", { username: name, room });
+    currentUsername = name;
+    document.getElementById("username-form").style.display = "none";
+    document.getElementById("chat").style.display = "block";
   }
-  currentUsername = name;
-  document.getElementById("username-form").style.display = "none";
-  document.getElementById("chat").style.display = "block";
 }
 
 function sendMessage(e) {
