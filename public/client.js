@@ -1,7 +1,9 @@
 const socket = io();
 
 const messagesList = document.getElementById("messages");
+const input = document.getElementById("message-input");
 let currentUsername = "";
+let typingTimeout;
 
 socket.on("connect", () => {
   console.log("connected as", socket.id);
@@ -25,6 +27,22 @@ socket.on("user left", (name) => {
   messagesList.appendChild(li);
 });
 
+socket.on("typing", (name) =>{
+  document.getElementById("typing-indicator").textContent = `${name} is typing...`;
+});
+
+socket.on("stop typing", () =>{
+  document.getElementById("typing-indicator").textContent = ""
+});
+
+input.addEventListener("input", () =>{
+  socket.emit("typing", currentUsername);
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    socket.emit("stop typing");
+  }, 1000);
+});
+
 function joinUser(e) {
   e.preventDefault();
   const username = document.getElementById("username-input");
@@ -40,7 +58,6 @@ function joinUser(e) {
 
 function sendMessage(e) {
   e.preventDefault();
-  const input = document.getElementById("message-input");
   const message = input.value.trim();
   if (message) {
     socket.emit("chat message", { username: currentUsername, text: message });

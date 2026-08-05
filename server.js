@@ -54,6 +54,16 @@ io.on("connection", (socket) => {
       text: msg.text.trim(),
     });
   });
+  
+  socket.on("typing", (username) =>{
+    if(typeof username !== "string" || !socket.room) return;
+    socket.to(socket.room).emit("typing", username)
+  });
+
+  socket.on("stop typing", () =>{
+    if(!socket.room) return;
+    socket.to(socket.room).emit("stop typing")
+  });
 
   socket.on("disconnect", (reason) => {
     console.log("socket disconected:", socket.id, reason);
