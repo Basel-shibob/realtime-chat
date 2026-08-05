@@ -2,16 +2,21 @@ const express = require("express");
 const http = require("node:http");
 const path = require("path");
 const { Server } = require("socket.io");
-const errorHandler = require("./middleware/errorHandler");
+require("dotenv").config();
+const errorHandler = require("./src/middleware/errorHandler");
+const connectDB = require("./src/config/db");
+const Message = require("./src/models/Message");
+
+connectDB();
 
 const app = express();
 const httpServer = http.createServer(app);
 const io = new Server(httpServer);
 const PORT = process.env.PORT || 3000;
 
-function getUsersInRoom(room){
+function getUsersInRoom(room) {
   const roomData = io.sockets.adapter.rooms.get(room);
-  if(!roomData) return [];
+  if (!roomData) return [];
   return Array.from(roomData)
     .map((socketId) => io.sockets.sockets.get(socketId)?.username)
     .filter(Boolean);
@@ -20,7 +25,7 @@ function getUsersInRoom(room){
 io.on("connection", (socket) => {
   console.log("socket connected:", socket.id);
 
-  socket.on("join", ({ username, room }) => {
+  socket.on("join", async ({ username, room }) => {
     if (
       typeof username !== "string" ||
       username.trim().length === 0 ||
@@ -34,13 +39,21 @@ io.on("connection", (socket) => {
     socket.username = username.trim();
     socket.room = room.trim();
     socket.join(socket.room);
+
+    try{
+      const history = await Message.find({ room:socket.room }).sort({createdAt: 1}).limit(50);
+      socket.emit("chat history", history);
+    }catch(error){
+      console.error("Failed to load history:", error);
+    }
+
     io.to(socket.room).emit("online users", getUsersInRoom(socket.room));
     socket.to(socket.room).emit("user joined", socket.username);
   });
 
   socket.messageTimestamps = [];
 
-  socket.on("chat message", (msg) => {
+  socket.on("chat message", async (msg) => {
     const now = Date.now();
     socket.messageTimestamps = socket.messageTimestamps.filter(
       (t) => now - t < 10000
@@ -58,20 +71,28 @@ io.on("connection", (socket) => {
     ) {
       return;
     }
-    io.to(socket.room).emit("chat message", {
+    const messageData = {
       username: msg.username,
       text: msg.text.trim(),
-    });
-  });
-  
-  socket.on("typing", (username) =>{
-    if(typeof username !== "string" || !socket.room) return;
-    socket.to(socket.room).emit("typing", username)
+      room: socket.room,
+    };
+    io.to(socket.room).emit("chat message", messageData);
+
+    try{
+      await Message.create(messageData);
+    }catch(error){
+      console.error("Failed to save message:", error)
+    }
   });
 
-  socket.on("stop typing", () =>{
-    if(!socket.room) return;
-    socket.to(socket.room).emit("stop typing")
+  socket.on("typing", (username) => {
+    if (typeof username !== "string" || !socket.room) return;
+    socket.to(socket.room).emit("typing", username);
+  });
+
+  socket.on("stop typing", () => {
+    if (!socket.room) return;
+    socket.to(socket.room).emit("stop typing");
   });
 
   socket.on("disconnect", (reason) => {

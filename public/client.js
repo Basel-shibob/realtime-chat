@@ -45,6 +45,14 @@ socket.on("online users", (users) =>{
   });
 });
 
+socket.on("chat history", (messages) =>{
+  messages.forEach((msg) =>{
+    const li = document.createElement("li");
+    li.textContent = `${msg.username}: ${msg.text}`;
+    messagesList.appendChild(li);
+  })
+})
+
 input.addEventListener("input", () =>{
   socket.emit("typing", currentUsername);
   clearTimeout(typingTimeout);
