@@ -35,6 +35,16 @@ socket.on("stop typing", () =>{
   document.getElementById("typing-indicator").textContent = ""
 });
 
+socket.on("online users", (users) =>{
+  const list = document.getElementById("online-list")
+  list.innerHTML = "";
+  users.forEach((name) => {
+    const li = document.createElement("li");
+    li.textContent = name;
+    list.appendChild(li);
+  });
+});
+
 input.addEventListener("input", () =>{
   socket.emit("typing", currentUsername);
   clearTimeout(typingTimeout);

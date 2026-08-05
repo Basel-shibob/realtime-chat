@@ -9,6 +9,14 @@ const httpServer = http.createServer(app);
 const io = new Server(httpServer);
 const PORT = process.env.PORT || 3000;
 
+function getUsersInRoom(room){
+  const roomData = io.sockets.adapter.rooms.get(room);
+  if(!roomData) return [];
+  return Array.from(roomData)
+    .map((socketId) => io.sockets.sockets.get(socketId)?.username)
+    .filter(Boolean);
+}
+
 io.on("connection", (socket) => {
   console.log("socket connected:", socket.id);
 
@@ -26,6 +34,7 @@ io.on("connection", (socket) => {
     socket.username = username.trim();
     socket.room = room.trim();
     socket.join(socket.room);
+    io.to(socket.room).emit("online users", getUsersInRoom(socket.room));
     socket.to(socket.room).emit("user joined", socket.username);
   });
 
@@ -68,6 +77,8 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (reason) => {
     console.log("socket disconected:", socket.id, reason);
     if (socket.username && socket.room) {
+      socket.leave(socket.room);
+      io.to(socket.room).emit("online users", getUsersInRoom(socket.room));
       socket.to(socket.room).emit("user left", socket.username);
     }
   });
